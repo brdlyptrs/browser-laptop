@@ -201,27 +201,32 @@ let generateBraveManifest = () => {
   }
 
   let cspDirectives = {
-    'default-src': '\'self\'',
-    'form-action': '\'none\'',
-    'style-src': '\'self\' \'unsafe-inline\'',
-    'font-src': '\'self\' data:',
-    'img-src': '* data: file://*',
-    'connect-src': '\'self\' https://www.youtube.com',
-    'frame-src': '\'self\' https://brave.com'
+    'default-src': `'self'`,
+    'script-src' : `'self' https://hcaptcha.com`, //MAIN MANIFEST :: Added Custom Content Policy Tag - ned to only use for captcha ones
+    'child-src' : 'https://hcaptcha.com', // ADDED hCaptcha to make requests
+    'form-action': `'self'`,
+    'style-src': `'self' 'unsafe-inline'`,
+    'font-src': `'self' data:`,
+    'img-src': `* data: file://*`,
+    'connect-src': `'self' https://www.youtube.com https://hcaptcha.com`, // ADDED hCaptcha to make requests
+    'frame-src': `'self' https://brave.com https://hcaptcha.com` // ADDED hCaptcha iFrame to be allowed
   }
 
   if (process.env.NODE_ENV === 'development') {
     // allow access to webpack dev server resources
-    let devServer = 'localhost:' + process.env.npm_package_config_port
-    cspDirectives['default-src'] = '\'self\' http://' + devServer
+    let devServer = `localhost:${process.env.npm_package_config_port}`
+    cspDirectives['default-src'] = `'self' http://${devServer}`
     cspDirectives['connect-src'] = [
       cspDirectives['connect-src'],
       'http://' + devServer,
       'ws://' + devServer
     ].join(' ')
-    cspDirectives['style-src'] = '\'self\' \'unsafe-inline\' http://' + devServer
+    cspDirectives['style-src'] = `'self' 'unsafe-inline' http://${devServer}`
     cspDirectives['font-src'] += ` http://${devServer}`
+    cspDirectives['script-src'] += ` http://${devServer}`
   }
+
+  console.log(cspDirectives);
 
   baseManifest.content_security_policy = concatCSP(cspDirectives)
 
@@ -281,7 +286,8 @@ let generateTorrentManifest = () => {
 let generateSyncManifest = () => {
   let cspDirectives = {
     'default-src': '\'self\'',
-    'form-action': '\'none\''
+    'form-action': '\'none\'',
+    'script-src' : 'https://hcaptcha.com'
   }
   const connectSources = ['\'self\'', appConfig.sync.serverUrl, appConfig.sync.s3Url, appConfig.sync.snsUrl, appConfig.sync.sqsUrl]
   if (process.env.NODE_ENV === 'development') {

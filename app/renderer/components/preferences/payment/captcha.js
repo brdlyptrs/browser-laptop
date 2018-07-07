@@ -22,12 +22,12 @@ const arrowIcon = require('../../../../extensions/brave/img/ledger/BAT_captcha_B
 // Utils
 const isWindows = require('../../../../common/lib/platformUtil').isWindows()
 
+
+
 // TODO: report when funds are too low
 class Captcha extends ImmutableComponent {
   constructor (props) {
     super(props)
-    this.onCaptchaDrop = this.onCaptchaDrop.bind(this)
-    this.onCaptchaDrag = this.onCaptchaDrag.bind(this)
     this.getText = this.getText.bind(this)
     this.captchaBox = null
     this.offset = 5
@@ -39,31 +39,18 @@ class Captcha extends ImmutableComponent {
     }
   }
 
-  onCaptchaDrop (event) {
+  componentDidMount () {
+        const script = document.createElement("script")
+        
+        script.src = "https://hcaptcha.com/1/api.js"
+        script.async = true
+
+        document.getElementById('captcha').appendChild(script);
+    }
+
+  onSubmit (event) {
     event.preventDefault()
-    const target = this.captchaBox.getBoundingClientRect()
-
-    let x = event.clientX - target.left - this.dndStartPosition.x + (this.dndStartPosition.height / 2)
-    let y = event.clientY - target.top - this.dndStartPosition.y + (this.dndStartPosition.width / 2)
-
-    if (isWindows) {
-      const dpr = window.devicePixelRatio
-      const factor = (dpr <= 1) ? 0 : (this.offset * dpr)
-      x = Math.round(x + factor)
-      y = Math.round(y + factor)
-    }
-
-    appActions.onPromotionClaim(x, y)
-  }
-
-  onCaptchaDrag (event) {
-    const target = event.target.getBoundingClientRect()
-    this.dndStartPosition = {
-      x: event.clientX - target.left,
-      y: event.clientY - target.top,
-      width: target.width,
-      height: target.height
-    }
+    appActions.onPromotionClaim()
   }
 
   preventDefault (event) {
@@ -91,31 +78,17 @@ class Captcha extends ImmutableComponent {
   render () {
     const text = this.getText()
 
-    return <div
-      className={css(styles.enabledContent__overlay)}
-      style={{'background': `url(${this.props.promo.get('captcha')}) no-repeat top left #f3f3f3`}}
-      ref={(node) => { this.captchaBox = node }}
-    >
-      {
-        <div
-          draggable='false'
-          className={css(styles.enabledContent__overlay_close, styles.disableDND)}
-          onClick={this.closeCaptcha}
-        />
-      }
-      <p draggable='false' className={css(styles.enabledContent__overlay_title, styles.disableDND)}>
-        <span className={css(styles.enabledContent__overlay_bold)} data-l10n-id={text.title} />
-        <span data-l10n-id={text.text} />
-      </p>
-      <div className={css(styles.enabledContent__captcha__wrap)}>
-        <img onDragStart={this.onCaptchaDrag} src={dragIcon} draggable='true' className={css(styles.enabledContent__captcha__image)} />
-        <img src={arrowIcon} draggable='false' className={css(styles.enabledContent__captcha__arrow, styles.disableDND)} />
-      </div>
-      <div draggable='false' onDrop={this.onCaptchaDrop} onDragOver={this.preventDefault} className={css(styles.enabledContent__captcha__drop, styles.disableDND)} />
-      <p draggable='false' className={css(styles.enabledContent__overlay_text, styles.disableDND)} data-l10n-id='promotionCaptchaMessage' />
+    return <div id="captcha" className={css(styles.enabledContent__overlay)} style={{'background': `#f3f3f3`}} >
+        <div draggable='false' className={css(styles.enabledContent__overlay_close, styles.disableDND)} onClick={this.closeCaptcha}/>
+          <form onClick={this.onSubmit}>
+          <div className="h-captcha" data-sitekey="a86b0ecb-3ff5-4255-aa23-40f86ae4fcb4"></div>
+          <input type="submit" value="Submit"/>
+          </form>
     </div>
   }
 }
+
+
 
 const styles = StyleSheet.create({
   enabledContent__overlay: {

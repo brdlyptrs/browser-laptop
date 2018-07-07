@@ -1878,11 +1878,9 @@ const appActions = {
     })
   },
 
-  onPromotionClaim: function (x, y) {
+  onPromotionClaim: function () {
     dispatch({
-      actionType: appConstants.APP_ON_PROMOTION_CLAIM,
-      x,
-      y
+      actionType: appConstants.APP_ON_PROMOTION_CLAIM
     })
   },
 

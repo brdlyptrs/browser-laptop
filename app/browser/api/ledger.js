@@ -3070,10 +3070,30 @@ const claimPromotion = (state, x, y) => {
     return
   }
 
+
+  console.log('claim promotion');
+
   const promotion = ledgerState.getPromotion(state)
+
+  let options = {
+    url:'http://localhost:3000/captcha',
+    method: 'POST',
+    responseType: 'text',
+    headers: underscore.defaults({}, {
+      'content-type': 'application/json; charset=utf-8',
+      'user-agent': userAgent
+    })
+  }
+
+  request.request(options, (err, response, text) => {
+    console.log(err, response, text);
+  });
+
   if (promotion.isEmpty()) {
     return
   }
+
+  return;
 
   client.setPromotion(promotion.get('promotionId'), {x, y}, (err, _, status) => {
     let param = null
