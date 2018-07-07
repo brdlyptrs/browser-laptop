@@ -28,7 +28,7 @@ const dndData = require('../../../../js/dndData')
 const UrlUtil = require('../../../../js/lib/urlutil')
 const frameStateUtil = require('../../../../js/state/frameStateUtil')
 const {isSourceAboutUrl} = require('../../../../js/lib/appUrlUtil')
-const {isPotentialPhishingUrl} = require('../../../../js/lib/urlutil')
+const {isPotentialPhishingUrl, isOnionUrl} = require('../../../../js/lib/urlutil')
 
 class UrlBarIcon extends React.Component {
   constructor (props) {
@@ -92,6 +92,7 @@ class UrlBarIcon extends React.Component {
     props.activeTabShowingMessageBox = tabState.isShowingMessageBox(state, activeTabId)
     props.isAboutPage = isSourceAboutUrl(props.location) && props.location !== 'about:newtab'
     props.isPotentialPhishingUrl = isPotentialPhishingUrl(props.location)
+    props.isOnionUrl = isOnionUrl(props.location)
 
     // used in other functions
     props.title = activeFrame.get('title', '')
@@ -115,7 +116,8 @@ class UrlBarIcon extends React.Component {
     const instanceStyles = {}
 
     if (this.props.activateSearchEngine) {
-      instanceStyles['--search-engine-favicon-url'] = `url(${this.props.searchSelectImage})`
+      icon = <img src={this.props.searchSelectImage}
+        className={css(styles.searchIcon)} alt='Search provider icon' />
     } else if (this.props.isPotentialPhishingUrl) {
       icon = <WarningIcon />
       iconTestId = 'isPotentialPhishingUrl'
@@ -131,6 +133,8 @@ class UrlBarIcon extends React.Component {
         icon = <EncryptedIcon />
         iconTestId = 'isSecure'
         isExtendedSecure = this.props.isSecureWithEVCert
+      } else if (this.props.isOnionUrl) {
+        iconTestId = 'isInsecureOnion'
       } else if (this.props.isSecure === 1) {
         icon = <UnencryptedIcon />
         iconTestId = 'isInsecure'
@@ -148,8 +152,7 @@ class UrlBarIcon extends React.Component {
       className={css(
         styles.urlBarIcon,
         isExtendedSecure && styles.urlBarIcon_extendedSecure,
-        isInsecure && styles.urlBarIcon_warning,
-        this.props.activateSearchEngine && styles.urlBarIcon_specificSearchEngine
+        isInsecure && styles.urlBarIcon_warning
       )}
       style={instanceStyles}
     >
@@ -171,19 +174,16 @@ const styles = StyleSheet.create({
     flexShrink: 0
   },
 
+  searchIcon: {
+    width: `${searchIconSize}px`
+  },
+
   urlBarIcon_extendedSecure: {
     '--icon-line-color': '#7ED321'
   },
 
   urlBarIcon_warning: {
     '--icon-line-color': '#ff0000'
-  },
-
-  urlBarIcon_specificSearchEngine: {
-    backgroundImage: 'var(--search-engine-favicon-url)',
-    backgroundSize: `${searchIconSize}px`,
-    backgroundRepeat: 'no-repeat',
-    backgroundPosition: 'center center'
   }
 })
 
