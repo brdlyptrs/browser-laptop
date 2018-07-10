@@ -22,38 +22,102 @@ const arrowIcon = require('../../../../extensions/brave/img/ledger/BAT_captcha_B
 // Utils
 const isWindows = require('../../../../common/lib/platformUtil').isWindows()
 
+const hCaptchaVars = {
+  domain        : 'hcaptcha.com',
+  element_id    : 'h-captcha',
+  site_key      : 'a86b0ecb-3ff5-4255-aa23-40f86ae4fcb4',
+  iframe_title  : 'hCaptcha human verification'
+}
 
+let Loaded = false;
 
 // TODO: report when funds are too low
 class Captcha extends ImmutableComponent {
+
   constructor (props) {
     super(props)
     this.getText = this.getText.bind(this)
-    this.captchaBox = null
+    this._id = null
+    this._response = null
+    this._removed = false;
     this.offset = 5
   }
 
   componentDidMount () {
-        const script = document.createElement("script")
-        
-        script.src = "https://hcaptcha.com/1/api.js"
-        script.async = true
+      if (typeof hcaptcha === 'undefined') {  //Check if hCaptcha has already been loaded, if not create script tag and wait to render captcha element
+        let script = CaptchaScript(this.onloadScript.bind(this));
+        document.getElementById(hCaptchaVars.element_id).appendChild(script);
+      } else {
+        this.onloadScript.call(this);
+      }
+  }
 
-        document.getElementById('captcha').appendChild(script);
-    }
-
-  onSubmit (event) {
-    event.preventDefault()
-    appActions.onPromotionClaim()
+  componentWillUnmount() {
+      if (this._removed === false) this.removeFrame()
   }
 
   preventDefault (event) {
     event.preventDefault()
   }
 
+  submitCaptcha (event) {
+    if (typeof hcaptcha === 'undefined') return
+    
+    this._response = hcaptcha.getResponse(this._id)
+
+    event.preventDefault()
+    appActions.onPromotionClaim(this._response)
+  }
+
   closeCaptcha () {
+    this.removeFrame();
     appActions.onCaptchaClose()
   }
+
+  errorCaptcha (e) {
+    if (typeof hcaptcha === 'undefined') return
+    hcaptcha.reset(this._id)
+  }
+
+  onloadScript() {
+    if (typeof hcaptcha !== undefined) {
+      this._id = hcaptcha.render(hCaptchaVars.element_id, 
+        {           
+          "sitekey"         : hCaptchaVars.site_key, 
+          "error-callback"  : this.errorCaptcha.bind(this), 
+          "expired-callback": this.errorCaptcha.bind(this), 
+          "callback"        : this.submitCaptcha.bind(this) 
+        })
+    } 
+  }
+
+  removeFrame() {
+    let nodes = document.body.childNodes //Get top level dom elements
+    let foundFrame = false
+
+    let i = nodes.length
+    let k, src, title, frames
+
+    while (--i > -1 && foundFrame === false) { //Look for hCaptcha verification iframe appended at document body
+      frames = nodes[i].getElementsByTagName('iframe')
+      
+      if (frames.length > 0) {
+        for (k=0; k < frames.length; k++) {
+          src = frames[k].getAttribute("src")
+          title = frames[k].getAttribute("title")
+
+          if (src.includes(hCaptchaVars.domain) && title.includes(hCaptchaVars.iframe_title)) foundFrame = nodes[i] //Compare iframe source and title to find correct iframe appened to body
+        }
+
+      }
+    }
+
+    if (foundFrame) {
+      document.body.removeChild(foundFrame);
+      this._removed = true;
+    }
+  }
+
 
   getText () {
     if (this.props.promo.get('promotionStatus') === promotionStatuses.CAPTCHA_ERROR) {
@@ -72,19 +136,45 @@ class Captcha extends ImmutableComponent {
   render () {
     const text = this.getText()
 
-    return <div id="captcha" className={css(styles.enabledContent__overlay)} style={{'background': `#f3f3f3`}} >
-        <div draggable='false' className={css(styles.enabledContent__overlay_close, styles.disableDND)} onClick={this.closeCaptcha}/>
-          <form onClick={this.onSubmit}>
-          <div className="h-captcha" data-sitekey="a86b0ecb-3ff5-4255-aa23-40f86ae4fcb4"></div>
-          <input type="submit" value="Submit"/>
-          </form>
-    </div>
+    return (
+      <div id="captcha" className={css(styles.enabledContent__overlay)} style={{'background': `#ececef`}} >
+        <CatpchaClose click={this.closeCaptcha.bind(this)} />      
+        <CaptchaText  title={text.title} text={text.text} />
+        <div id={hCaptchaVars.element_id}  ></div>
+      </div>
+    )
   }
 }
 
 
+// Dom Elements
+const CaptchaText = (props) => {
+  return (
+      <p className={css(styles.enabledContent__overlay_title, styles.disableDND)}>
+          <span className={css(styles.enabledContent__overlay_bold)} data-l10n-id={props.title} />
+          <span data-l10n-id={props.text} />
+      </p>
+    )
+}
 
+const CatpchaClose = (props) => {
+  return <div className={css(styles.enabledContent__overlay_close, styles.disableDND)} onClick={props.click}/>
+}
+
+const CaptchaScript = (cb) => {
+  let script = document.createElement("script")
+  
+  script.src = "https://hcaptcha.com/1/api.js?render=explicit"
+  script.async = true
+
+  script.addEventListener('load', cb, true)
+
+  return script;        
+}
+
+// CSS Styles
 const styles = StyleSheet.create({
+
   enabledContent__overlay: {
     position: 'absolute',
     zIndex: 3,
@@ -118,7 +208,7 @@ const styles = StyleSheet.create({
 
   enabledContent__overlay_title: {
     color: '#5f5f5f',
-    fontSize: '20px',
+    fontSize: '16px',
     display: 'block',
     marginBottom: '10px'
   },
@@ -139,33 +229,6 @@ const styles = StyleSheet.create({
 
   enabledContent__captcha__wrap: {
     display: 'flex'
-  },
-
-  enabledContent__captcha__drop: {
-    position: 'absolute',
-    width: '400px',
-    height: '180px',
-    top: 0,
-    right: 0,
-    zIndex: 2,
-    display: 'block'
-  },
-
-  enabledContent__captcha__arrow: {
-    height: '62px',
-    flexBasis: '185px',
-    margin: '10px 0 0 -40px',
-    position: 'relative',
-    zIndex: '1'
-  },
-
-  enabledContent__captcha__image: {
-    flexBasis: '66px',
-    height: '62px',
-    marginTop: '10px',
-    position: 'relative',
-    zIndex: '2',
-    cursor: 'pointer'
   },
 
   disableDND: {
