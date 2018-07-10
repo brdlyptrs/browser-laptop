@@ -31,12 +31,6 @@ class Captcha extends ImmutableComponent {
     this.getText = this.getText.bind(this)
     this.captchaBox = null
     this.offset = 5
-    this.dndStartPosition = {
-      x: 0,
-      y: 0,
-      width: 0,
-      height: 0
-    }
   }
 
   componentDidMount () {
