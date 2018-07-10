@@ -2078,16 +2078,10 @@ const appActions = {
     })
   },
 
-  onTorInitError: function (message) {
+  onTorError: function (message) {
     dispatch({
-      actionType: appConstants.APP_ON_TOR_INIT_ERROR,
+      actionType: appConstants.APP_ON_TOR_ERROR,
       message
-    })
-  },
-
-  onTorInitSuccess: function () {
-    dispatch({
-      actionType: appConstants.APP_ON_TOR_INIT_SUCCESS
     })
   },
 
@@ -2095,6 +2089,13 @@ const appActions = {
     dispatch({
       actionType: appConstants.APP_ON_TOR_INIT_PERCENTAGE,
       percentage
+    })
+  },
+
+  onTorOnline: function (online) {
+    dispatch({
+      actionType: appConstants.APP_ON_TOR_ONLINE,
+      online
     })
   },
 
