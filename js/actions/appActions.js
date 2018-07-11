@@ -1895,9 +1895,10 @@ const appActions = {
     })
   },
 
-  onPromotionClaim: function () {
+  onPromotionClaim: function (token) {
     dispatch({
-      actionType: appConstants.APP_ON_PROMOTION_CLAIM
+      actionType: appConstants.APP_ON_PROMOTION_CLAIM, //Updated captcha event to pass token - hCaptcha
+      token
     })
   },
 

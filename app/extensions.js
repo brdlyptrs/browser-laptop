@@ -218,14 +218,14 @@ let generateBraveManifest = () => {
 
   let cspDirectives = {
     'default-src': `'self'`,
-    'script-src' : `'self' https://hcaptcha.com`, //MAIN MANIFEST :: Added Custom Content Policy Tag - ned to only use for captcha ones
-    'child-src' : 'https://hcaptcha.com', // ADDED hCaptcha to make requests
+    'script-src' : `'self' https://hcaptcha.com`, //MAIN MANIFEST :: Added Custom Content Policy Tag - need to only use for captcha ones  - hCaptcha
+    'child-src' : 'https://hcaptcha.com', // ADDED allow hCaptcha iframe to make requests  - hCaptcha
     'form-action': `'self'`,
     'style-src': `'self' 'unsafe-inline'`,
     'font-src': `'self' data:`,
     'img-src': `* data: file://*`,
-    'connect-src': `'self' https://www.youtube.com https://hcaptcha.com`, // ADDED hCaptcha to make requests
-    'frame-src': `'self' https://brave.com https://hcaptcha.com` // ADDED hCaptcha iFrame to be allowed
+    'connect-src': `'self' https://www.youtube.com https://hcaptcha.com`, // ADDED allow hCaptcha iframes to make requests  - hCaptcha
+    'frame-src': `'self' https://brave.com https://hcaptcha.com` // ADDED allow hCaptcha to create iframes  - hCaptcha
   }
 
   if (process.env.NODE_ENV === 'development') {
@@ -241,8 +241,6 @@ let generateBraveManifest = () => {
     cspDirectives['font-src'] += ` http://${devServer}`
     cspDirectives['script-src'] += ` http://${devServer}`
   }
-
-  console.log(cspDirectives);
 
   baseManifest.content_security_policy = concatCSP(cspDirectives)
 

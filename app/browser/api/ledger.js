@@ -3079,29 +3079,27 @@ const onCaptchaResponse = (state, response, body) => {
   return state
 }
 
-const claimPromotion = (state, x, y) => {
+const claimPromotion = (state, token) => { //Update claim promotion to check with token - hCaptcha
   if (!client) {
     return
   }
 
 
-  console.log('claim promotion');
-
   const promotion = ledgerState.getPromotion(state)
 
-  let options = {
-    url:'http://localhost:3000/captcha',
-    method: 'POST',
-    responseType: 'text',
-    headers: underscore.defaults({}, {
-      'content-type': 'application/json; charset=utf-8',
-      'user-agent': userAgent
-    })
-  }
+  // let options = { //temporaray request to test hCaptcha validation through local enviroment - hCaptcha
+  //   url:'http://localhost:3000/captcha',
+  //   method: 'POST',
+  //   responseType: 'text',
+  //   headers: underscore.defaults({}, {
+  //     'content-type': 'application/json; charset=utf-8',
+  //     'user-agent': userAgent
+  //   })
+  // }
 
-  request.request(options, (err, response, text) => {
-    console.log(err, response, text);
-  });
+  // request.request(options, (err, response, text) => {
+  //   console.log(err, response, text);
+  // });
 
   if (promotion.isEmpty()) {
     return
@@ -3109,7 +3107,7 @@ const claimPromotion = (state, x, y) => {
 
   return;
 
-  client.setPromotion(promotion.get('promotionId'), {x, y}, (err, _, status) => {
+  client.setPromotion(promotion.get('promotionId'), { token }, (err, _, status) => {
     let param = null
     if (err) {
       console.error(`Problem claiming promotion ${err.toString()}`)

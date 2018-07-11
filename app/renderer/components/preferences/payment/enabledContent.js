@@ -294,6 +294,8 @@ class EnabledContent extends ImmutableComponent {
         onClick={this.closePromotionClick}
       />
 
+      //return this.captchaOverlay(promo) //Temporary testing captcha - hCaptcha
+
       if (promotionStatus) {
         switch (promotionStatus) {
           case promotionStatuses.GENERAL_ERROR:

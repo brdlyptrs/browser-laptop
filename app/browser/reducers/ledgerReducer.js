@@ -452,7 +452,7 @@ const ledgerReducer = (state, action, immutableAction) => {
       }
     case appConstants.APP_ON_PROMOTION_CLAIM:
       {
-        ledgerApi.claimPromotion(state, action.get('x'), action.get('y'))
+        ledgerApi.claimPromotion(state, action.get('token')) //Updated captcha to return a token for verification - hCaptcha
         break
       }
     case appConstants.APP_ON_PROMOTION_REMIND:
